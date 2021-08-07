@@ -1,0 +1,385 @@
+﻿#Control de Flex
+
+from tkinter import*
+from tkinter import ttk
+import openpyxl as op
+from datetime import date, timedelta, datetime
+
+#valores:
+flexcaba=250
+flexgba1=400
+flexgba2=500
+
+mercadocaba=309.99
+mercadogba1=479.99
+mercadogba2=659.99
+
+today = date.today()
+
+#archivos
+wb = op.load_workbook('flex.xlsx')
+#diccionarios
+operacionespendientes = []
+dic_tipodeoperacion = {}
+dic_destino = {}
+dic_bonificacion = {}
+pen = 0
+#Definiciones
+def calculocaba(u, sheet):
+	caba = []
+	caba_bon = []
+	caba_ent = []
+	caba_prop = []
+	for x in range(1, u):
+		xrow = sheet.cell(column=3, row=x).value
+		xrowb = sheet.cell(column=4, row=x).value
+		xrowt = sheet.cell(column=2, row=x).value
+		if xrow == 'CABA':
+			caba.append('x')
+			if xrowt == 2:
+				caba_prop.append('x')
+			else:
+				if xrowb == True:
+					caba_bon.append('x')
+				else:
+					caba_ent.append('x')
+	global vcaba
+	vcaba += len(caba)
+	global dcaba
+	dcaba = len(caba)
+	vcaba_bon = len(caba_bon)
+	vcaba_ent = len(caba_ent)
+	vcaba_prop = len(caba_prop)
+	global drecibido
+	drecibido += float((vcaba_bon * round(mercadocaba/2))+(vcaba_ent*mercadocaba))
+	global a_pagar
+	a_pagar += float(len(caba)*flexcaba)
+	bell2 = Label(frame, text=vcaba_prop)
+	bell2.grid(column=2, row=7)
+def calculogba1(u, sheet):
+	gba1 = []
+	gba1_bon = []
+	gba1_ent = []
+	gba1_prop = []
+	for x in range(1, u):
+		xrow = sheet.cell(column=3, row=x).value
+		xrowb = sheet.cell(column=4, row=x).value
+		xrowt = sheet.cell(column=2, row=x).value
+		if xrow == 'GBA 1':
+			gba1.append('x')
+			if xrowt == 2:
+				gba1_prop.append('x')
+			else:
+				if xrowb == True:
+					gba1_bon.append('x')
+				else:
+					gba1_ent.append('x')
+	global vgba1
+	vgba1 += len(gba1)
+	global dgba1
+	dgba1 = len(gba1)
+	vgba1_bon = len(gba1_bon)
+	vgba1_ent = len(gba1_ent)
+	vgba1_prop = len(gba1_prop)
+	global drecibido
+	drecibido += float((vgba1_bon * round(mercadogba1/2))+(vgba1_ent*mercadogba1))
+	global a_pagar
+	a_pagar += float(len(gba1)*flexgba1)
+def calculogba2(u, sheet):
+	gba1 = []
+	gba1_bon = []
+	gba1_ent = []
+	gba1_prop = []
+	for x in range(1, u):
+		xrow = sheet.cell(column=3, row=x).value
+		xrowb = sheet.cell(column=4, row=x).value
+		xrowt = sheet.cell(column=2, row=x).value
+		if xrow == 'GBA 2':
+			gba1.append('x')
+			if xrowt == 2:
+				gba1_prop.append('x')
+			else:
+				if xrowb == True:
+					gba1_bon.append('x')
+				else:
+					gba1_ent.append('x')
+	global vgba2
+	vgba2 += len(gba1)
+	global dgba2
+	dgba2 = len(gba1)
+	vgba1_bon = len(gba1_bon)
+	vgba1_ent = len(gba1_ent)
+	vgba1_prop = len(gba1_prop)
+	global drecibido
+	drecibido += float((vgba1_bon * round(mercadogba2/2))+(vgba1_ent*mercadogba2))
+	global a_pagar
+	a_pagar += float(len(gba1)*flexgba2)
+def calcular(fecha):
+	ini = fecha
+	fin = ini + timedelta(days=-7)
+	global vcaba
+	vcaba = int(0)
+	global vgba1
+	vgba1 = int(0)
+	global vgba2
+	vgba2 = int(0)
+	global a_pagar
+	a_pagar = int(0)
+	global drecibido
+	drecibido = int(0)
+	try:
+		while ini >= fin:
+			sheet = wb[str(ini)]
+			u = (sheet.max_row + 1)
+			calculocaba(u, sheet)
+			calculogba1(u, sheet)
+			calculogba2(u, sheet)
+			ini = ini + timedelta(days=-1)
+	except KeyError:
+		pass
+	pagaraflex = float((vcaba*flexcaba)+(vgba1*flexgba1)+(vgba2*flexgba2))
+	totalapagar = float(a_pagar-drecibido)
+	global rframe
+	bell2 = Label(rframe, text=vcaba)
+	bell2.grid(column=2, row=2)
+	bell = Label(rframe, text=vgba1)
+	bell.grid(column=2, row=3)
+	bell3 = Label(rframe, text=vgba2)
+	bell3.grid(column=2, row=4)
+	bell4 = Label(rframe, text='${:,.2f}'.format(pagaraflex))
+	bell4.grid(column=2, row=5)
+	bell5 = Label(rframe, text='${:,.2f}'.format(drecibido))
+	bell5.grid(column=2, row=6)
+	bell6 = Label(rframe, text= '${:,.2f}'.format(totalapagar))
+	bell6.grid(column=2, row=7)
+
+def precalcular():
+	global ingre_fecha
+	fecharaw = ingre_fecha.get()
+	year, month, day = map(int, fecharaw.split('-'))
+	fecha = date(year, month, day)
+	calcular(fecha)
+def precalcular2():
+	global ingre_fecha
+	fecharaw = ingre_fecha.get()
+	year, month, day = map(int, fecharaw.split('-'))
+	fecha = date(year, month, day)
+	detalles(fecha)	
+
+def detalles(fecha):
+	global calc
+	dframe = Frame(calc)
+	dframe.pack()
+	inis = []
+	ini = fecha
+	fin = ini + timedelta(days=-7)
+	global vcaba
+	vcaba = int(0)
+	global vgba1
+	vgba1 = int(0)
+	global vgba2
+	vgba2 = int(0)
+	global a_pagar
+	a_pagar = int(0)
+	global drecibido
+	drecibido = int(0)
+	try:
+		while ini >= fin:
+			inis.append('x')
+			l = len(inis)
+			sheet = wb[str(ini)]
+			u = (sheet.max_row + 1)
+			detaf = Label(dframe, text=str(ini))
+			detaf.grid(column=(l+1), row=1)
+			calculocaba(u, sheet)
+			deta = Label(dframe, text=dcaba)
+			deta.grid(column=(l+1), row=2)
+			calculogba1(u, sheet)
+			deta2 = Label(dframe, text=dgba1)
+			deta2.grid(column=(l+1), row=3)
+			calculogba2(u, sheet)
+			deta3 = Label(dframe, text=dgba2)
+			deta3.grid(column=(l+1), row=4)
+			ini = ini + timedelta(days=-1)
+	except KeyError:
+		pass
+	deta4 = Label(dframe, text="CABA")
+	deta4.grid(column=1, row=2)
+	deta5 = Label(dframe, text="GBA1")
+	deta5.grid(column=1, row=3)
+	deta6 = Label(dframe, text="GBA2")
+	deta6.grid(column=1, row=4)
+
+def ventanacalcular():
+	today = date.today()
+	global calc
+	calc = Toplevel(raiz)
+	aframe = Frame(calc)
+	aframe.pack()
+	global ingre_fecha
+	ingre_fecha_label = Label(aframe, text="Último día de la semana: (AAAA-MM-DD):")
+	ingre_fecha_label.grid(column=1, row=1)
+	ingre_fecha = Entry(aframe, width=10)
+	ingre_fecha.insert(END, today)
+	ingre_fecha.grid(column=2, row=1)
+	global rframe
+	rframe = Frame(calc)
+	rframe.pack()
+	resul_label =Label(rframe, text="Resultados:")
+	resul_label.grid(column=1, row=1)
+	resul_caba_label =Label(rframe, text="Cantidad de envíos en CABA:")
+	resul_caba_label.grid(column=1, row=2)
+	resul_gba1_label =Label(rframe, text="Cantidad de envíos en GBA 1:")
+	resul_gba1_label.grid(column=1, row=3)
+	resul_gba2_label =Label(rframe, text="Cantidad de envíos en GBA 2:")
+	resul_gba2_label.grid(column=1, row=4)
+	resul_paga_label =Label(rframe, text="Cantidad a pagar:")
+	resul_paga_label.grid(column=1, row=5)
+	resul_paga2_label =Label(rframe, text="Cantidad de dinero recibido:")
+	resul_paga2_label.grid(column=1, row=6)
+	resul_paga3_label =Label(rframe, text="Saldo a pagar:")
+	resul_paga3_label.grid(column=1, row=7)
+
+	boton_calcular = Button(aframe, text="Calcular", command=precalcular)
+	boton_calcular.grid(column=1, row=2)
+	boton_detalles = Button(aframe, text="Detalles", command=precalcular2)
+	boton_detalles.grid(column=2, row=2)
+
+def botonguardar():
+	numoperacion = numero_operacion.get()
+	if numoperacion not in operacionespendientes:
+		operacionespendientes.append(numoperacion)
+	tipooperacion = opcion.get()
+	dic_tipodeoperacion[numoperacion] = tipooperacion
+	destino2 = lugar.get()
+	dic_destino[numoperacion] = destino2
+	bonif = chk_bonificado_state.get()
+	if bonif == 0:
+		bonif = False
+	dic_bonificacion[numoperacion] = bonif
+
+	hojas = wb.sheetnames
+	if str(today) not in hojas:
+		wb.create_sheet(str(today))
+		sheet = wb[str(today)]
+		sheet['A1'].value = 'Número de operación'
+		sheet['B1'].value = 'Tipo'
+		sheet['C1'].value = 'Destino'
+		sheet['D1'].value = 'Bonificado'
+	else:
+		sheet = wb[str(today)]
+
+	u = (sheet.max_row + 1)
+	guar = False
+	for x in range(1, u):
+		xrow = sheet.cell(column=1, row=x).value
+		if str(xrow) == str(numoperacion):
+			sheet.cell(column=2, row=x).value = dic_tipodeoperacion[numoperacion]
+			sheet.cell(column=3, row=x).value = dic_destino[numoperacion]
+			sheet.cell(column=4, row=x).value = dic_bonificacion[numoperacion]
+			guar = True
+			labell = Label(frame, text="Se ha modificado con exito")
+			labell.grid(column=3, row=3)
+			prenum = Label(preframe, text= numoperacion)
+			prenum.grid(column=1, row=x)
+			predes = Label(preframe, text= dic_destino[numoperacion])
+			predes.grid(column=2, row=x)
+			prebon = Label(preframe, text= dic_bonificacion[numoperacion])
+			prebon.grid(column=3, row=x)
+	if guar == False:
+		sheet.cell(column=1, row=u).value = numoperacion
+		sheet.cell(column=2, row=u).value = dic_tipodeoperacion[numoperacion]
+		sheet.cell(column=3, row=u).value = dic_destino[numoperacion]
+		sheet.cell(column=4, row=u).value = dic_bonificacion[numoperacion]
+		labelll = Label(frame, text="Se ha guardado con exito")
+		labelll.grid(column=3, row=3)
+		prenum = Label(preframe, text= numoperacion)
+		prenum.grid(column=1, row=u)
+		predes = Label(preframe, text= dic_destino[numoperacion])
+		predes.grid(column=2, row=u)
+		prebon = Label(preframe, text= dic_bonificacion[numoperacion])
+		prebon.grid(column=3, row=u)	
+	pen = (len(sheet['A']) - 1)
+	label_envio_num.config(text=pen)
+	wb.save('flex.xlsx')
+def preview():
+	sheet = wb[str(today)]
+	ent = (len(sheet['A'])+1)
+	for e in range(1, ent):
+		prenum = Label(preframe, text= sheet.cell(column=1, row=e).value)
+		prenum.grid(column=1, row=e)
+		predes = Label(preframe, text= sheet.cell(column=3, row=e).value)
+		predes.grid(column=2, row=e)
+		prebon = Label(preframe, text= sheet.cell(column=4, row=e).value)
+		prebon.grid(column=3, row=e)
+	pen = (len(sheet['A']) - 1)
+	label_envio_num.config(text=pen)
+	wb.save('flex.xlsx')
+
+
+#GUI
+raiz = Tk()
+raiz.title("Libreria Losada")
+
+frame = Frame(raiz)
+frame.pack()
+
+titulo = Label(frame, text="Libreria Losada \n Flex control")
+titulo.grid(column=2, row=1)
+
+mframe = Frame(frame)
+mframe.grid(column=2, row=2)
+vendframe = Frame(frame)
+vendframe.grid(column=1, row=2)
+
+opcion = IntVar()
+ml = Radiobutton(mframe, text="Mercado Libre", variable=opcion, value=1)
+ml.pack()
+pr = Radiobutton(mframe, text="Propio", variable=opcion, value=2)
+pr.pack()
+
+vendedor = IntVar()
+vallarta = Radiobutton(vendframe, text="Vallarta", variable=opcion, value=1)
+vallarta.pack()
+losada = Radiobutton(vendframe, text="Losada", variable=opcion, value=2)
+losada.pack()
+
+label_noperacion = Label(frame, text="Número de operación:")
+label_noperacion.grid(column=1, row=3)
+numero_operacion = Entry(frame)
+numero_operacion.grid(column=2, row=3)
+
+label_destino = Label(frame, text="Destino:")
+label_destino.grid(column=1, row=4)
+lugar = ttk.Combobox(frame, values=['CABA', 'GBA 1', 'GBA 2'])
+lugar.grid(column=2, row=4)
+lugar.current(0)
+
+chk_bonificado_state = BooleanVar()
+chk_bonificado = Checkbutton(frame, text='Bonificado:', var=chk_bonificado_state)
+chk_bonificado.grid(column=2, row=5)
+
+guardar = Button(frame, text="Guardar", command=botonguardar)
+guardar.grid(column=2, row=6)
+
+eframe = Frame(frame)
+eframe.grid(column=3, row=2)
+
+label_envio = Label(eframe, text="Envíos pendientes:")
+label_envio.pack()
+label_envio.config(font=('Helvetica 18 bold', 20))
+label_envio_num = Label(eframe, text=pen)
+label_envio_num.config(font=(30))
+label_envio_num.pack()
+
+botoncalcular = Button(frame, text="Calcular", command=ventanacalcular)
+botoncalcular.grid(column=1, row=6)
+
+botonpreview = Button(frame, text="Vista previa", command=preview)
+botonpreview.grid(column=3, row=6)
+
+preframe = Frame(raiz)
+preframe.pack()
+
+
+raiz.mainloop()
