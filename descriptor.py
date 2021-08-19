@@ -58,8 +58,7 @@ def desambiguador(proveedor, editorial,isbn):
 	if "LOSADA" in proveedor:
 		if "LOSADA" in editorial:
 			paginas=
-			tapa=
-			tamaño=
+			formato=
 			sinopsis=
 
 class Escrapeadoreditorial:
